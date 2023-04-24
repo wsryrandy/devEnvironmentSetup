@@ -29,15 +29,17 @@ Set `ZSH_THEME="powerlevel10k/powerlevel10k"` in `~/.zshrc`
 Follow instructions to setup powerlevel10k theme
 
 ### plugins
-zsh-autosuggestions
+#### zsh-autosuggestions
 ```
 https://github.com/zsh-users/zsh-autosuggestions/blob/master/INSTALL.md
 ```
 
-zsh-syntax-highlighting
+#### zsh-syntax-highlighting
 ```
 https://github.com/zsh-users/zsh-syntax-highlighting/blob/master/INSTALL.md
 ```
 
-web-search
+#### web-search
 Add web-search into plugins in ~/.zshrc
+
+
