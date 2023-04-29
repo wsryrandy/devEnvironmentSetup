@@ -1,5 +1,5 @@
 ## tmux config file
-copy `tmux/.tmux.conf` to `~/.tmux.conf`
+copy `tmux/.tmux.conf` to `~/.tmux.conf`, press <C-a><shift>i to install plugins
 
 ### use tpm as tmux plugin manager
 ```bash
