@@ -76,3 +76,6 @@ can open terminal in a vertical way `space + v`
 
 actually, it is better to use `alt + h/v` to open or hide a terminal
 and `alt + i` will open or hide a floating terminal
+
+## org mode
+add following lines in cu
