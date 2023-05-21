@@ -2,6 +2,14 @@
 ### enable copy-paste from system clipboard
 Add `opt.clipboard="unnamedplus"` into nvim config file(`~/.config/nvim/lua/custom/init.lua`), make sure `xclip` is on the path (`sudo apt intall xclip`)
 
+### add strings to multi-line use visual mode
+- move cursor to the first line
+- enter visual block mode (Ctrl + v)
+- go to the bottom line
+- press capital I
+- type in the strings (Note: it will only update the first line on the screen)
+- press ESC, it will update all selected lines
+
 # the CHAD NVIM 
 ## load nvchad
 This is a much easier way to setup nvim, but it needs a newer version of nvim from snap, current wsl does not support it well
@@ -77,5 +85,65 @@ can open terminal in a vertical way `space + v`
 actually, it is better to use `alt + h/v` to open or hide a terminal
 and `alt + i` will open or hide a floating terminal
 
+## setup additional configs
+### custom plugins
+For custom plugins, it is better to create an addittional lua file under `<config path>/nvim/lua/custom/plugins.lua`. And add it to `<config path>/nvim/lua/custom/chadrc.lua`:
+```lua
+local M = {}
+M.ui = {theme = 'catppuccin'}
+M.plugins = 'custom.plugins'
+return M
+```
+### color column
+add the following line to `<config path>/nvim/lua/custom/init.lua`:
+```lua
+vim.opt.colorcolumn = "80"
+```
+to enable color column for code
+
 ## org mode
-add following lines in cu
+add following lines in `<config path>/nvim/lua/custom/plugins.lua`:
+```lua
+local plugins =
+{
+  {
+    "kristijanhusak/org-bullets.nvim",
+    requires = {"nvim-treesitter/nvim-treesitter"},
+    lazy = false
+  },
+
+  {
+    "nvim-orgmode/orgmode", 
+    lazy = false,
+    config = function()
+      -- Load custom treesitter grammar for org filetype
+      require('orgmode').setup_ts_grammar()
+      -- Treesitter configuration
+      require('nvim-treesitter.configs').setup {
+        -- If TS highlights are not enabled at all, or disabled via `disable` prop,
+        -- highlighting will fallback to default Vim syntax highlighting
+        highlight = {
+          enable = true,
+          -- Required for spellcheck, some LaTex highlights and
+          -- code block highlights that do not have ts grammar
+          additional_vim_regex_highlighting = {'org'},
+        },
+        ensure_installed = {'org'}, -- Or run :TSUpdate org
+      }
+
+      require('orgmode').setup({
+        org_agenda_files = {'~/Dropbox/org/*', '~/my-orgs/**/*'},
+        org_default_notes_file = '~/Dropbox/org/refile.org',
+      })
+
+      require ('cmp').setup({
+        sources = {
+          { name = 'orgmode' }
+        }
+      })
+    end
+    },
+  }
+return plugin
+```
+Then use `:Lazy sync` to sync the plugins
