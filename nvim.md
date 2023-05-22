@@ -101,7 +101,7 @@ vim.opt.colorcolumn = "80"
 ```
 to enable color column for code
 
-## org mode
+## org mode (**Not work...**)
 add following lines in `<config path>/nvim/lua/custom/plugins.lua`:
 ```lua
 local plugins =
@@ -142,8 +142,73 @@ local plugins =
         }
       })
     end
-    },
-  }
+  },
+}
 return plugin
 ```
 Then use `:Lazy sync` to sync the plugins
+
+## LSP for c++
+In `<config path>/nvim/lua/custom/plugins.lua` add following:
+```lua
+
+    {
+      "neovim/nvim-lspconfig",
+      config = function()
+        require "plugins.configs.lspconfig"
+        require "custom.configs.lspconfig"
+      end
+    },
+    {
+      -- use :MasonInstallAll command to install, or manually install
+      "williamboman/mason.nvim",
+      opts = {
+        ensure_installed = {
+          "clangd",
+          "rust-analyzer",
+        },
+      },
+    }
+```
+The first config is to include configs for lsp. The second one is to install 
+lsp servers for neovim using mason, you need to use `:MasonInstallAll`
+install the language servers, but sometimes you have to install manually
+
+Create `configs/lspconfig.lua` under custom folder and add following
+```lua
+local on_attach = require("plugins.configs.lspconfig").on_attach
+local capabilities = require("plugins.configs.lspconfig").capabilities
+
+local lspconfig = require "lspconfig"
+
+lspconfig.clangd.setup({
+  on_attach = on_attach,
+  capabilities = capabilities,
+  filetypes = {"c", "cpp"},
+  root_dir = lspconfig.util.root_pattern(
+    '.clangd',
+    '.clang-tidy',
+    '.clang-format',
+    'compile_commands.json',
+    'compile_flags.txt',
+    'configure.ac',
+    '.git'
+  ),
+  single_file_support = true,
+})
+
+lspconfig.rust_analyzer.setup({
+  on_attach = on_attach,
+  capabilities = capabilities,
+  filetypes = {"rust"},
+  root_dir = lspconfig.util.root_pattern(
+    'Cargo.toml'
+  ),
+  single_file_support = true,
+
+})
+```
+Different language server specification can be found at 
+`https://github.com/neovim/nvim-lspconfig/blob/master/doc/server_configurations.md`.
+e.g. Golang uses `gopls`, python uses `pyright`
+
