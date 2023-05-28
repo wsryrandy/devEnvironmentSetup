@@ -148,6 +148,28 @@ return plugin
 ```
 Then use `:Lazy sync` to sync the plugins
 
+## setup "nvim-treesitter" in Ubuntu
+In `<config path>/nvim/lua/custom/plugins.lua` add following:
+```lua
+  {
+    "nvim-treesitter/nvim-treesitter",
+    init = function()
+      require("core.utils").lazy_load "nvim-treesitter"
+    end,
+    cmd = { "TSInstall", "TSBufEnable", "TSBufDisable", "TSModuleInfo" },
+    build = ":TSUpdate",
+    opts = function()
+      return require "plugins.configs.treesitter"
+    end,
+    config = function(_, opts)
+      dofile(vim.g.base46_cache .. "syntax")
+      require("nvim-treesitter.install").prefer_git = true
+      require("nvim-treesitter.configs").setup(opts)
+    end,
+  },
+```
+The line `require("nvim-treesitter.install").prefer_git = true`, will fix the issue
+
 ## LSP for c++
 In `<config path>/nvim/lua/custom/plugins.lua` add following:
 ```lua
@@ -165,7 +187,7 @@ In `<config path>/nvim/lua/custom/plugins.lua` add following:
       opts = {
         ensure_installed = {
           "clangd",
-          "rust-analyzer",
+    --      "rust-analyzer",
           "gopls",
           "pyright"
         },
@@ -199,16 +221,16 @@ lspconfig.clangd.setup({
   single_file_support = true,
 })
 
-lspconfig.rust_analyzer.setup({
-  on_attach = on_attach,
-  capabilities = capabilities,
-  filetypes = {"rust"},
-  root_dir = lspconfig.util.root_pattern(
-    'Cargo.toml'
-  ),
-  single_file_support = true,
-
-})
+-- lspconfig.rust_analyzer.setup({
+--   on_attach = on_attach,
+--   capabilities = capabilities,
+--   filetypes = {"rust"},
+--   root_dir = lspconfig.util.root_pattern(
+--     'Cargo.toml'
+--   ),
+--   single_file_support = true,
+--
+-- })
 
 lspconfig.gopls.setup({
   on_attach = on_attach,
