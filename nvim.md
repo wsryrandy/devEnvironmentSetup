@@ -166,6 +166,8 @@ In `<config path>/nvim/lua/custom/plugins.lua` add following:
         ensure_installed = {
           "clangd",
           "rust-analyzer",
+          "gopls",
+          "pyright"
         },
       },
     }
@@ -207,7 +209,40 @@ lspconfig.rust_analyzer.setup({
   single_file_support = true,
 
 })
+
+lspconfig.gopls.setup({
+  on_attach = on_attach,
+  capabilities = capabilities,
+  filetypes = {"go", "gomod", "gowork", "gotmpl"},
+  root_dir = lspconfig.util.root_pattern(
+    '.git',
+    'go.work',
+    'go.mod'
+  ),
+  single_file_support = true,
+})
+
+lspconfig.pyright.setup({
+  on_attach = on_attach,
+  capabilities = capabilities,
+  filetypes = {"python"},
+  settings = {
+    pyright = {
+      autoImportCompletion = true,
+    },
+    python = {
+      analysis = {
+        autoSearchPaths = true,
+        diagnosticMode = 'openFilesOnly',
+        useLibraryCodeForTypes = true,
+        typeCheckingMode = 'off',
+      },
+    },
+  },
+  single_file_support = true,
+})
 ```
+
 Different language server specification can be found at 
 `https://github.com/neovim/nvim-lspconfig/blob/master/doc/server_configurations.md`.
 e.g. Golang uses `gopls`, python uses `pyright`
