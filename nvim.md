@@ -269,3 +269,194 @@ Different language server specification can be found at
 `https://github.com/neovim/nvim-lspconfig/blob/master/doc/server_configurations.md`.
 e.g. Golang uses `gopls`, python uses `pyright`
 
+## NvChad setup for Golang
+With all the configs setup above. Need to add format and debug capabillities in this section.
+
+### `gopls` language server setup
+Same as last secion with additional settings, extra settings can be found in `gopls` analysis section:
+```lua
+lspconfig.gopls.setup({
+  on_attach = on_attach,
+  capabilities = capabilities,
+  cmd = {"gopls"},
+  filetypes = {"go", "gomod", "gowork", "gotmpl"},
+  root_dir = lspconfig.util.root_pattern(
+    '.git',
+    'go.work',
+    'go.mod'
+  ),
+  settings = {
+    gopls = {
+      completeUnimported = true,
+      usePlaceholders = true,
+      analyses = {
+        unusedparams = true,
+      },
+    },
+  },
+  single_file_support = true,
+})
+```
+
+### AutoFormatting for Golang
+Use `null-ls.nvim` to do auto formatting. Add below to `<config path>/nvim/lua/custom/plugins.lua`:
+```lua
+  {
+    -- null-ls plugin for formatting
+    "jose-elias-alvarez/null-ls.nvim",
+    ft = "go",
+    opts = function()
+      return require "custom.configs.null-ls"
+    end,
+  }
+```
+Create `null-ls.lua` under `<config path>/nvim/lua/custom/configs/`
+```lua
+local null_ls = require("null-ls")
+local augroup = vim.api.nvim_create_augroup("LspFormatting", {})
+
+local opts = {
+  sources = {
+    -- go install mvdan.cc/gofumpt@latest
+    -- go install -v github.com/incu6us/goimports-reviser/v3@latest
+    -- go install github.com/segmentio/golines@latest
+    -- Can also try to install those through Mason
+    null_ls.builtins.formatting.gofumpt,
+    null_ls.builtins.formatting.goimports_reviser,
+    null_ls.builtins.formatting.golines,
+  },
+  on_attach = function(client, bufnr)
+    if client.supports_method("textDocument/formatting") then
+      vim.api.nvim_clear_autocmds({
+        group = augroup,
+        buffer = bufnr,
+      })
+      vim.api.nvim_create_autocmd("BufWritePre",{
+        group = augroup,
+        buffer = bufnr,
+        callback = function()
+          vim.lsp.buf.format({ bufnr = bufnr})
+        end,
+      })
+    end
+  end,
+}
+return opts
+```
+And add `golines`, `gofumpt`, `goimports_reviser` to `Mason` config. The above config also enables autoformatting on save.
+
+### Debugging use dap and delve for Golang
+Add `golang` in `treesitter` by `TSInstall go`.
+Add `delve` into `Mason` config to install the package. Add below to `<config path>/nvim/lua/custom/plugins.lua`:
+```lua
+  {
+    "mfussenegger/nvim-dap", -- debugger environment for nvim
+    init = function()
+      require("core.utils").load_mappings("dap") -- add custom key mapping
+    end,
+  }
+```
+```lua
+  {
+    "leoluz/nvim-dap-go", -- golang plugin for dap
+    ft = "go",
+    dependencies = "mfussenegger/nvim-dap",
+    config = function (_, opts)
+      require("dap-go").setup(opts)
+      require("core.utils").load_mappings("dap_go") -- add custom key mapping
+    end
+  }
+```
+
+#### Add key mapping
+Create `<config path>/nvim/lua/custom/mappings.lua` as below
+```lua
+local M = {}
+ -- :DapStepOver for step over in debug
+M.dap = {
+  plugin = true,
+  n = {
+    ["<leader>db"] = {
+      "<cmd> DapToggleBreakpoint <CR>",
+      "Add breakpoint at line"
+    },
+    ["<leader>dus"] = {
+      function ()
+        local widgets = require('dap.ui.widgets');
+        local sidebar = widgets.sidebar(widgets.scopes);
+        sidebar.open();
+      end,
+      "Open debugging sidebar"
+    }
+  }
+}
+
+M.dap_go = {
+  plugin = true,
+  n = {
+    ["<leader>dgt"] = {
+      function()
+        require('dap-go').debug_test()
+      end,
+      "Debug go test"
+    },
+    ["<leader>dgl"] = {
+      function()
+        require('dap-go').debug_last()
+      end,
+      "Debug last go test"
+    }
+  }
+}
+
+return M
+```
+
+Add following lines to `<config path>/nvim/lua/custom/chadrc.lua` to include mapping
+```lua
+ M.mappings = require 'custom.mappings'
+```
+
+### `gopher` helper for Golang
+Include if-else err and json structure, etc.
+Add `gopher` into `Mason` config to install the package. Add below to `<config path>/nvim/lua/custom/plugins.lua`:
+```lua
+  {
+    "olexsmir/gopher.nvim",
+    ft = "go",
+    config = function(_, opts)
+      require("gopher").setup(opts)
+      require("core.utils").load_mappings("gopher") -- add mapping
+    end,
+    build = function ()
+      vim.cmd [[silent! GoInstallDeps]] -- install any dependencies this plugin needs
+    end
+  }
+```
+
+`:GoTagAdd json` to add json struct. Same with yaml.
+
+`:GoMod tidy` in `go.mod` file.
+
+`:GoGet` to download packages
+
+`:GoTestsAll` to generate go tests 
+
+`:GoIfErr` to auto-generate err block
+
+Add additional key mapping in `<config path>/nvim/lua/custom/mappings.lua`: 
+```lua
+M.gopher = {
+  plugin = true,
+  n = {
+    ["<leader>gsj"] = {
+      "<cmd> GoTagAdd json <CR>",
+      "Add json struct tags"
+    },
+    ["<leader>gsy"] = {
+      "<cmd> GoTagAdd json <CR>",
+      "Add json struct tags"
+    },
+  }
+}
+```
