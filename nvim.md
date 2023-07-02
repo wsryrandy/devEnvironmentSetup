@@ -71,7 +71,26 @@ use `space + c + h` to open and close it
 
 ## window navigation
 `:vsp` to vertically split and `:sp` to horizontally split
-and use `ctrl + h/j/k/l` to navigate through the windows
+and use `ctrl + h/j/k/l` to navigate through the windows.
+Actually, to use together with tmux, will add a plugin to make window movement same as tmux
+in `<nvim config>/lua/custom/plugins.lua` add
+```lua
+{
+    "christoomey/vim-tmux-navigator",
+    lazy = false,
+}
+```
+Then in `<nvim config>/lua/custom/mappings.lua` add
+```lua
+M.general = {
+    n = {
+        ["<C-h"] = {"<cmd> TmuxNavigateLeft<CR>", "window left" },
+        ["<C-l"] = {"<cmd> TmuxNavigateRight<CR>", "window right" },
+        ["<C-j"] = {"<cmd> TmuxNavigateDown<CR>", "window down" },
+        ["<C-k"] = {"<cmd> TmuxNavigateUp<CR>", "window up" },
+    }
+}
+```
 
 ## tabb/buffers
 `tab` to go to next buffer
