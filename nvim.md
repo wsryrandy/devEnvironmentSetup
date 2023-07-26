@@ -479,3 +479,125 @@ M.gopher = {
   }
 }
 ```
+## NvChad setup for python
+Add `pyright` into Mason install and type `:MasonInstallAll` to install the dependencies
+```lua
+  {
+    -- use :MasonInstallAll command to install, or manually install
+    "williamboman/mason.nvim",
+    opts = {
+      ensure_installed = {
+        "mypy",
+        "ruff",
+        "black",
+        "pyright",
+        "debugpy",
+        "lua-language-server",
+      },
+    },
+  }
+```
+Can use `:LspInfo` function to check if the client is working fine.
+
+### LSP config for Python 
+in `<config path>/nvim/lua/custom/configs/lspconfig.lua`
+
+```lua
+lspconfig.pyright.setup({
+  on_attach = on_attach,
+  capabilities = capabilities,
+  filetypes = {"python"},
+  settings = {
+    pyright = {
+      autoImportCompletion = true,
+    },
+    python = {
+      analysis = {
+        autoSearchPaths = true,
+        diagnosticMode = 'openFilesOnly',
+        useLibraryCodeForTypes = true,
+        typeCheckingMode = 'off',
+      },
+    },
+  },
+  single_file_support = true,
+})
+```
+### AutoFormatting for Python
+add `python` in `<config path>/nvim/lua/custom/plugins.lua`
+```lua
+ {
+    -- null-ls plugin for formatting
+    "jose-elias-alvarez/null-ls.nvim",
+    ft = {"go", "python"},
+    opts = function()
+      return require "custom.configs.null-ls"
+    end,
+  },
+
+```
+
+in `<config path>/nvim/lua/custom/configs/null-ls.lua`:
+```lua
+local opts = {
+  sources = {
+    null_ls.builtins.diagnostics.mypy,
+    null_ls.builtins.diagnostics.ruff,
+    null-ls.builtins.formatting.black,
+  },
+ 
+```
+### Debug for Python
+in `<config path>/nvim/lua/custom/plugins.lua`:
+```lua
+ {
+     "rcarriga/nvim-dap-ui",
+     dependencies = "mfussenegger/nvim-dap",
+     config = function()
+        local dap = require("dap")
+        local dapui = require("dapui")
+        dapui.setup()
+        dap.listeners.after.event_initialized["dapui_config"] = function()
+            dapui.open()
+        end
+        dap.listeners.before.event_terminated["dapui_config"] = function()
+            dapui.close()
+        end
+        dap.listeners.before.event_exited["dapui_config"] = function()
+            dapui.close()
+        end
+     end
+ },
+ {
+     "mfussenegger/nvim-dap-python",
+     ft = "python",
+     dependencies = {
+         "mfussenegger/nvim-dap",
+         "rcarriga/nvim-dap-ui",
+     },
+     config = function(_, opts)
+        local path = "~/.local/share/nvim/mason/packages/debugpy/venv/bbin/python"
+        require("dap-python").setup(path)
+        require("core.utils").load_mappings("dap_python") 
+
+     end,
+ },
+```
+#### add mapping
+in the mapping file:
+```lua
+M.dap_python = {
+  plugin = true,
+  n = {
+    ["<leader>dpr"] = {
+      function()
+        require('dap-python').test_method()
+      end
+    }
+  }
+}
+```
+And in the plugins.lua, add loadmappings to nvim-dap-python as shown in the code above
+
+
+## NvChad setup for cplusplus
