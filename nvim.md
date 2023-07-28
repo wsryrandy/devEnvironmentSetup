@@ -601,3 +601,61 @@ And in the plugins.lua, add loadmappings to nvim-dap-python as shown in the code
 
 
 ## NvChad setup for cplusplus
+Add `clangd` into Mason install and type `:MasonInstallAll` to install the dependencies
+```lua
+  {
+    -- use :MasonInstallAll command to install, or manually install
+    "williamboman/mason.nvim",
+    opts = {
+      ensure_installed = {
+        "clangd",
+        "clang-format",
+        "codelldb",
+      },
+    },
+  }
+```
+Can use `:LspInfo` function to check if the client is working fine.
+
+### LSP config for c++ 
+in `<config path>/nvim/lua/custom/configs/lspconfig.lua`
+
+```lua
+lspconfig.clangd.setup({
+  on_attach = function(client, bufnr)
+    client.server_capabilities.signatureHelpProvider = false
+    on_attach(client, bufnr)
+  end,
+  capabilities = capabilities,
+})
+```
+use `TSInstall cpp` to install c++ treesitter.
+
+### AutoFormatting for c++
+use `clang-format` in Mason install. Set `null-ls` to `event = "VeryLazy"`.
+in `<config path>/nvim/lua/custom/configs/null-ls.lua`:
+```lua
+local opts = {
+  sources = {
+    null_ls.builtins.formatting.clang_format,
+  },
+```
+
+### Debug for c++
+use `codelldb` as debbug
+in `<config path>/nvim/lua/custom/plugins.lua`:
+```lua
+{
+    "jay-babu/mason-nvim-dap.nvim",
+    event = "VeryLazy",
+    dependencies = {
+        "williamboman/mason.nvim",
+        "mfussenegger/nvim-dap",
+    },
+    opts = {
+        handlers = {}
+    },
+},
+```
+need to compile the code with debug flag
+`$ > clang++ --debug main.cpp -o main`
